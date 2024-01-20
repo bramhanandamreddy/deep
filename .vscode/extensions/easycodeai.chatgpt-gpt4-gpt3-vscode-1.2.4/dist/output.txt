@@ -1,0 +1,2898 @@
+<passage file_path=src/webview/components/AppNav.tsx>
+        <NavbarMenuItem>
+          {userProfile?.isPlaceholderAccount !== false ? (
+              <span className="w-full hover:text-blue-500 text-white text-lg cursor-pointer" onClick={() => handleLogoutAndSignUp(navigate)}>
+                Sign Up
+              </span>
+            ) : (
+              <span className="w-full hover:text-blue-500 text-white text-lg cursor-pointer" onClick={() => handleLogout(navigate)}>
+                Logout
+              </span>
+            )}
+        </NavbarMenuItem>
+
+</passage><passage file_path=src/webview/pages/components/UpgradeModal.tsx>
+      <ModalContent>
+        <ModalHeader className="flex flex-col gap-1">Upgrade Your Account</ModalHeader>
+        <ModalBody>
+          {(userProfile.isPlaceholderAccount == true) ?
+            <>
+              <p>
+              To view upgrades, you must first create an account.
+              </p>
+              <Button radius='sm' color='primary' variant='shadow' onClick={() => handleLogout(navigate)}>
+              Sign Up
+              </Button>
+            </>
+          :
+
+</passage><passage file_path=src/webview/components/AppNav.tsx>
+function UnauthenticatedNavbar() {
+  return (
+    <>
+      <NavbarContent justify="start" className="flex-wrap gap-y-0">
+        <NavBarNavLink to="/auth/try">
+          Try Without Account
+        </NavBarNavLink>
+        <NavBarNavLink to="/auth/signup">
+          Sign Up
+        </NavBarNavLink>
+        <NavBarNavLink to="/auth/login">
+          Login
+        </NavBarNavLink>
+        <NavBarNavLink to="/auth/forgot-password">
+          Forgot Password
+        </NavBarNavLink>
+      </NavbarContent>
+    </>
+  );
+}
+
+function handleLogoutAndSignUp(navigate: NavigateFunction) {
+  store.dispatch(webviewToExtensionApi.endpoints.logout.initiate());
+  navigate('/auth/signup');
+}
+
+function handleLogout(navigate: NavigateFunction) {
+  store.dispatch(webviewToExtensionApi.endpoints.logout.initiate());
+  navigate('/auth/login');
+}
+
+
+</passage><passage file_path=src/webview/pages/components/TryWithoutAccount.tsx>
+import { Spinner } from '@nextui-org/react';
+import { useEffect, useRef } from 'react';
+import { useNavigation, useSubmit } from 'react-router-dom';
+import { useAppActionData } from '../../hooks';
+
+export default function TryWithoutAccount() {
+  const firstLoad = useRef<boolean>(true);
+  const data = useAppActionData<'loginWithPlaceholder'>()?.loginWithPlaceholder;
+  const navigation = useNavigation();
+
+  const submit = useSubmit();
+  useEffect(() => {
+    if (firstLoad.current) {
+      // prevent the 2nd effect triggered by React strict mode from calling submit
+      firstLoad.current = false;
+      submit(null, { method: 'POST', replace: true });
+    }
+  }, []);
+
+  return (
+    <div className="flex h-full px-6">
+      {navigation.state !== 'idle' && <Spinner label="Loading" className="mx-auto" />}
+      {(data && 'error' in data) && (
+        <div className="text-danger">{data.error?.message}</div>
+      )}
+    </div>
+  );
+
+</passage><passage file_path=src/webviewProvider/reactWebviewViewProvider.ts>
+				try {
+					switch (validatedMessage.type) {
+						case 'abort': {
+							// TODO:
+							break;
+						}
+						case 'login': {
+							easyCodeLogin(validatedMessage);
+							break;
+						}
+						case 'signup': {
+							easyCodeSignup(validatedMessage);
+							break;
+						}
+						case 'addTab': {
+							handleAddTab(validatedMessage);
+							break;
+						}
+						case 'deleteTab': {
+							handleDeleteTab(validatedMessage);
+							break;
+						}
+						case 'logout': {
+							easyCodeLogout(validatedMessage);
+							break;
+						}
+						case 'forgot-password': {
+							easyCodeForgotPassword(validatedMessage);
+							break;
+						}
+						case 'login-with-placeholder': {
+							easyCodePlaceholderLogin(validatedMessage);
+							break;
+						}
+						case 'is-user-logged-in': {
+							handleIsUserLoggedIn(validatedMessage);
+							break;
+						}
+						case 'user-profile': {
+							handleUserProfile(validatedMessage);
+							break;
+						}
+						case 'all-directories-file-tree': {
+							handleAllDirectoriesFileTree(validatedMessage);
+							break;
+						}
+
+</passage><passage file_path=src/webview/pages/components/Signup.tsx>
+        {(data && 'error' in data) && (
+          <div className="text-danger">{data.error?.message}</div>
+        )}
+      </div>
+    </Form>
+  );
+
+</passage><passage file_path=src/webview/pages/components/Signup.tsx>
+        <Dropdown type="listbox">
+          <DropdownTrigger>
+            <Button fullWidth variant="bordered" className="justify-start">
+              {ROLE_OPTIONS.find(({ key }) => key === role)?.label}
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu
+            disallowEmptySelection
+            selectionMode="single"
+            aria-label="Role"
+            items={ROLE_OPTIONS}
+            selectedKeys={[role]}
+            disabledKeys={DISABLED_OPTIONS}
+            onSelectionChange={(selection: Selection) => { selection !== 'all' && setRole([...selection][0]); }}
+          >
+            {(item) => {
+              const { key, label } = item as { key: string, label: string };
+              return <DropdownItem key={key}>{label}</DropdownItem>;
+            }}
+          </DropdownMenu>
+        </Dropdown>
+
+        <Button
+          type="submit"
+          color="primary"
+          isLoading={navigation.state !== 'idle'}
+        >
+          Sign Up
+        </Button>
+
+
+</passage><passage file_path=src/webviewProvider/reactWebviewViewProvider.ts>
+	const handleOpenSubscriptionExternalLink: WebviewToExtensionMessageHandler<"open-manage-subscription-external-link"> = async ( { id, data }) => {
+		legacyWebviewViewProvider.getMixPanel()?.track('Opened Manage Subscription Page', {
+			distinct_id: legacyWebviewViewProvider.getMachineId()
+		});
+
+		let user_email = data.user.userEmail;
+		const url = 'https://billing.stripe.com/p/login/cN216K64M47x6wo5kk?prefilled_email=' + user_email;
+		vscode.env.openExternal(vscode.Uri.parse(url));
+	}
+
+	const handleIsUserLoggedIn: WebviewToExtensionMessageHandler = async ({ id }) => {
+		const isLoggedIn = await easyCodeClient.isLoggedIn();
+		await postMessage({
+			id,
+			type: 'response',
+			data: { isLoggedIn },
+		});
+	};
+
+
+</passage><passage file_path=src/webview/pages/components/Login.tsx>
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const data = useAppActionData<'login'>()?.login;
+  const navigation = useNavigation();
+
+  return (
+    <Form replace method="POST" className="flex flex-col gap-y-4 items-start px-6 w-64">
+      <Input
+        variant='bordered'
+        name="email"
+        type="email"
+        label="Email"
+        value={email}
+        onValueChange={(value: string) => { setEmail(value); }}
+      />
+      <Input
+        variant='bordered'
+        name="password"
+        type="password"
+        label="Password"
+        value={password}
+        onValueChange={(value: string) => { setPassword(value); }}
+      />
+
+      <Button
+        type="submit"
+        color="primary"
+        isLoading={navigation.state !== 'idle'}
+      >
+        Login
+      </Button>
+
+      {(data && 'error' in data) && (
+        <div className="text-danger">{data.error?.message}</div>
+      )}
+    </Form>
+  );
+
+</passage><passage file_path=src/webview/pages/components/ChatTab.tsx>
+  let lastLanguage: any = undefined;
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+        //disabled for now
+        //setIsVisible(entry.isIntersecting);
+      }, {
+        rootMargin: '0px'  // Adjust this value as needed
+      });
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, []);
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setMessage(easyCodeChatMessage.content);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+
+</passage><passage file_path=src/webview/pages/components/ChatLayout.tsx>
+  const handleClickOutside = (event:any) => {
+    //console.log("handling click");
+    if (selectRef.current && !selectRef.current.contains(event.target) && historyMenuButtonRef.current && !historyMenuButtonRef.current.contains(event.target)) {
+      console.log(historyMenuButtonRef);
+      setHistoryMenuOpen(false);
+    }
+  };
+
+  // Call scrollToRight after the first render
+  useEffect(() => {
+    console.log("messageHistory length: " + data?.messageHistory.length);
+    addTab().then(result => {
+      if ('data' in result){
+        let newTabId = result?.data.newTabId;
+        navigate(`${newTabId}`);
+      }
+    })
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+
+
+  const addTab = async () => {
+    return await store.dispatch(webviewToExtensionApi.endpoints.addTab.initiate());
+  };
+
+
+</passage><passage file_path=src/webview/pages/components/Signup.tsx>
+export default function Signup() {
+  const [role, setRole] = useState<Key>('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  let fetcher = useFetcher();
+
+  const data = useAppActionData<'signup'>()?.signup;
+  const navigation = useNavigation();
+
+
+</passage><passage file_path=vsc-extension-quickstart.md>
+* Press `F5` to open a new window with your extension loaded.
+* Run your command from the command palette by pressing (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac) and typing `Hello World`.
+* Set breakpoints in your code inside `src/extension.ts` to debug your extension.
+* Find output from your extension in the debug console.
+
+## Make changes
+
+* You can relaunch the extension from the debug toolbar after changing code in `src/extension.ts`.
+* You can also reload (`Ctrl+R` or `Cmd+R` on Mac) the VS Code window with your extension to load your changes.
+
+
+## Explore the API
+
+* You can open the full set of our API when you open the file `node_modules/@types/vscode/index.d.ts`.
+
+## Run tests
+
+
+</passage><passage file_path=src/webview/components/AppNav.tsx>
+  const handleOpenAccountModal = async () => {
+    const updatedUserProfile = await dispatch(webviewToExtensionApi.endpoints.getUserProfile.initiate(undefined, {forceRefetch: true}));
+    setUserProfile(updatedUserProfile?.data?.user as EasyCodeUser);
+    console.log(updatedUserProfile?.data?.user as EasyCodeUser);
+    setIsAccountModalOpen(true);
+  }
+
+
+</passage><passage file_path=src/webview/pages/components/ChatTab.tsx>
+  const handleAskWebChange = (event: any) => {
+    const selected: boolean = event.target.checked;
+    setIsAskWeb(selected);
+    if (selected){
+      setIsAskCodebase(!selected);
+    }
+    // Call the extensionApi here
+    //await store.dispatch(extensionApi.endpoints.yourEndpoint.initiate({ path: node.path, selected }));
+  };
+
+  //let model = store.dispatch(extensionApi.endpoints.getModel.initiate());
+
+
+  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    let newSelection = e.target.value;
+    //console.log("newModel" + newSelection);
+    dispatch(webviewToExtensionApi.endpoints.setModel.initiate({model: newSelection}));
+    setModel(newSelection);
+  }
+
+  //console.log("isAskCodebase" + isAskCodebase);
+
+
+
+</passage><passage file_path=src/webviewProvider/reactWebviewViewProvider.ts>
+	};
+
+	const easyCodePlaceholderLogin: WebviewToExtensionMessageHandler = async ({ id }) => {
+		const canUsePlaceHolder = await easyCodeClient.canUsePlaceholder();
+		if (!canUsePlaceHolder) {
+			await postError('You cannot do this because you have created an account already.', { id });
+			return;
+		}
+
+		const placeholderPassword = crypto.createHash('sha256').update(vscode.env.machineId).digest('hex');
+		const isPlaceholderAccount = true;
+		const role = 'OT';
+
+		const placeholderSignupArgs = {
+			email: `${vscode.env.machineId}@placeholder.com`,
+			password: placeholderPassword,
+			is_placeholder_account: isPlaceholderAccount,
+			role: role,
+			vsc_registration_machine_id: legacyWebviewViewProvider.getMachineId()
+		}
+
+		//let user: EasyCodeUser;
+
+</passage><passage file_path=src/webview/pages/components/ChatTab.tsx>
+                              <PopoverContent>
+                                <div className="cursor-pointer" onClick={(event) => handleGoToCode(event, childrenStr)}>
+                                  <div className="text-md hover:text-blue-500">Go To Reference</div>
+                                </div>
+                              </PopoverContent>
+
+</passage><passage file_path=src/webview/pages/data/login.ts>
+import { json, redirect } from 'react-router-dom';
+import { webviewToExtensionApi } from '../../redux/webviewToExtensionApi';
+import { store } from '../../redux/store';
+import Login from '../components/Login';
+import type { JsonType } from '../../routes/types';
+import type { ActionFunction } from '@remix-run/router';
+
+const action: ActionFunction = async ({ request }) => {
+  const { email, password } = Object.fromEntries<FormDataEntryValue>(await request.formData());
+
+  if (!!(email && typeof email !== 'string') || !!(password && typeof password !== 'string')) {
+    // should not happen
+    throw new Error('Unexpected type');
+  }
+
+  const result = await store.dispatch(webviewToExtensionApi.endpoints.login.initiate({ email, password }));
+  if ('error' in result) {
+    return json<JsonType<'login'>>({ login: result });
+  } else {
+    return redirect('/chat');
+  }
+};
+
+export default {
+  Component: Login,
+  action,
+
+</passage><passage file_path=src/webviewProvider/legacyWebviewViewProvider.ts>
+if (askWeb){
+
+			let formData = new FormData();
+			formData.append('query', prompt);
+			const google_search_response = await this.easycodeAPI().post(easycode_url + '/google-search/', formData, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			});
+			console.log(google_search_response);
+
+			formData = new FormData();
+			let webReferences = [];
+
+			for (var i = 0; i < Math.min(5, google_search_response.data.search_items.length); i++){
+				let searchItem = google_search_response.data.search_items[i];
+				webReferences.push({title: searchItem.title, snippet: searchItem.snippet, link: searchItem.link});
+				formData.append('urls', searchItem.link);
+			}
+
+			this._view?.webview.postMessage({ type: 'setWebSearchResults', value: webReferences, tabIndex: this._tabIndex });
+</passage><passage file_path=src/apis/extensionToServerApi.ts>
+      } else {
+        return undefined;
+      }
+    },
+    async scrapeWebContentForInput( {input, model }) {
+
+      const getFormData = () => {
+        let formData = new FormData();
+        formData.append('query', input);
+        return formData;
+      }
+			const google_search_response = await client.post('/google-search/', getFormData);
+			console.log(google_search_response);
+
+			let formData = new FormData();
+			let webReferences = [];
+
+			for (var i = 0; i < Math.min(5, google_search_response.data.search_items.length); i++){
+				let searchItem = google_search_response.data.search_items[i];
+				webReferences.push({title: searchItem.title, snippet: searchItem.snippet, link: searchItem.link});
+				formData.append('urls', searchItem.link);
+			}
+
+			//this._view?.webview.postMessage({ type: 'setWebSearchResults', value: webReferences, tabIndex: this._tabIndex });
+
+
+      let maxAvailableToken = calcMaxAvailableTokens();
+			const web_scraped_texts_response = await client.post('/scrape-webpage/', formData);
+			let web_scraped_texts_arr = web_scraped_texts_response.data.web_scraped_texts_arr;
+
+
+</passage><passage file_path=src/webview/pages/components/Login.tsx>
+import { Button, Input } from '@nextui-org/react';
+import { useState } from 'react';
+import { Form, useNavigation } from 'react-router-dom';
+import { useAppActionData } from '../../hooks';
+
+
+</passage><passage file_path=src/webviewProvider/legacyWebviewViewProvider.ts>
+let loginDisplayStyle = loggedIn == true ? "display: none;" : "";
+		let loggedInDisplayStyle = loggedIn == true ? "" : "display: none;";
+		let askCodebaseDisplayStyle = ""
+		let isPlaceholderAccount = userEmail == 'No Account' ? true : false;
+		let logoutDisplayText = isPlaceholderAccount == true ? "Sign Up" : "Logout";
+		let tabsHtml = '';
+		let tabsContentHtml = '';
+</passage><passage file_path=vsc-extension-quickstart.md>
+* Open the debug viewlet (`Ctrl+Shift+D` or `Cmd+Shift+D` on Mac) and from the launch configuration dropdown pick `Extension Tests`.
+* Press `F5` to run the tests in a new window with your extension loaded.
+* See the output of the test result in the debug console.
+* Make changes to `src/test/suite/extension.test.ts` or create new test files inside the `test/suite` folder.
+  * The provided test runner will only consider files matching the name pattern `**.test.ts`.
+  * You can create folders inside the `test` folder to structure your tests any way you want.
+
+## Go further
+
+
+</passage><passage file_path=CHANGELOG.md>
+    - This is meant to be a high level explanation of a local piece of the code
+
+## [1.0.4]
+
+- Added a web browsing feature
+    - This cannot be used on the free rate-limited GPT-4
+- Added an insert code button and diff view button to code blocks
+
+## [1.0.3]
+
+- Switched default model to GPT-4 (rate-limited)
+
+## [1.0.2]
+
+- Added better error logging for client side
+
+## [1.0.1]
+
+- Fixed a bug with .gitignore support
+
+## [1.0.0]
+
+- Prompt Assist now works with ask codebase
+    -It will ask codebase relevant questions
+- Prompt Ideas will now be specific to codebase when ask codebase is selected
+- Improved high level project understanding of ask codebase
+- Fixed a UI bug with Ask Codebase icon being larger than other icons in the home page
+- Fixed a bug with prompt ideas not showing properly on light theme
+
+## [0.9.9]
+
+- Added an option to automatically use the code in the active editor view as context
+- Fixed a bug with the chat scrolling to the very top when there are large inputs
+
+## [0.9.8]
+
+
+</passage><passage file_path=src/webview/pages/components/AccountModal.tsx>
+    return (
+    <Modal radius="sm" backdrop={"blur"} size={"lg"} placement={"center"}isOpen={isOpen} onClose={onClose}>
+
+</passage><passage file_path=CHANGELOG.md>
+- Fixed a bug where GPT-4 tokens get deduced when openai call fails
+- Max tokens can now only contain a maximum of 2000 tokens
+- Fixed a bug that causes 400 error when max token is set to too high
+- Changed icon
+
+## [0.7.5]
+
+- Added an opt-in option for data collection. This is turned off by default.
+- Increased padding on message tabs
+- Fixed an error with messages being generated on the wrong tab
+- Closing a tab will now automatically switch to the nearest tab
+- Fixed a bug where nothing is generated when all tabs have been closed
+
+## [0.7.4]
+
+- Added a backup openai server in case the primary one fails. This will not handle all openai errors
+
+## [0.7.3]
+
+- Added more logging for errors
+
+## [0.7.2]
+
+- Added better logging for errors
+
+## [0.7.1]
+
+- Hotfix for bug that causes GPT-4 to not work
+
+## [0.7.0]
+
+
+</passage><passage file_path=src/webview/pages/data/tryWithoutAccount.ts>
+import { json, redirect } from 'react-router-dom';
+import { webviewToExtensionApi } from '../../redux/webviewToExtensionApi';
+import { store } from '../../redux/store';
+import TryWithoutAccount from '../components/TryWithoutAccount';
+import type { JsonType } from '../../routes/types';
+import type { ActionFunction } from '@remix-run/router';
+
+const action: ActionFunction = async () => {
+  const result = await store.dispatch(webviewToExtensionApi.endpoints.loginWithPlaceholder.initiate());
+  if ('error' in result) {
+    return json<JsonType<'loginWithPlaceholder'>>({ loginWithPlaceholder: result });
+  } else {
+    return redirect('/chat');
+  }
+};
+
+export default {
+  Component: TryWithoutAccount,
+  action,
+
+</passage><passage file_path=src/webview/pages/data/layout.ts>
+const loader: LoaderFunction = async ({ request }) => {
+  const isLoggedInPromise = store.dispatch(webviewToExtensionApi.endpoints.isLoggedIn.initiate(undefined, {
+    forceRefetch: true,
+  }));
+  const { data: { isLoggedIn = false } = {} } = await isLoggedInPromise;
+  isLoggedInPromise.unsubscribe();
+
+  if (isLoggedIn && new URL(request.url).pathname.startsWith('/auth')) {
+    return redirect('/chat');
+  }
+
+  if (!isLoggedIn && !new URL(request.url).pathname.startsWith('/auth')) {
+    return redirect('/auth');
+  }
+
+  // fetch profile to confirm access
+  if (isLoggedIn) {
+    const userProfilePromise = store.dispatch(webviewToExtensionApi.endpoints.getUserProfile.initiate());
+    const profile = await userProfilePromise;
+    userProfilePromise.unsubscribe();
+
+    if (profile.status === QueryStatus.rejected || !profile.data?.user) {
+      // TODO: trigger logout
+      return redirect('/auth');
+    }
+
+    return json<JsonType<'isLoggedIn' | 'getUserProfile'>>({
+      isLoggedIn: { data: { isLoggedIn } },
+      getUserProfile: { data: profile.data },
+    });
+  }
+
+
+</passage><passage file_path=src/webview/pages/data/signup.ts>
+const action: ActionFunction = async ({ request }) => {
+  const { email, password, passwordConfirm, role } = Object.fromEntries<FormDataEntryValue>(await request.formData());
+
+  if (!!(email && typeof email !== 'string') || !!(password && typeof password !== 'string') || !!(passwordConfirm && typeof passwordConfirm !== 'string') || !!(role && typeof role !== 'string')) {
+    // should not happen
+    throw new Error('Unexpected type');
+  }
+
+  if (password !== passwordConfirm) {
+    console.log(password);
+    console.log(passwordConfirm);
+    console.log(role);
+    return json<JsonType<'signup'>>({ signup: { error: {message: 'Passwords do not match!'}} });
+  }
+
+  const result = await store.dispatch(webviewToExtensionApi.endpoints.signup.initiate({ email, password, role }));
+  if ('error' in result) {
+    return json<JsonType<'signup'>>({ signup: result });
+  } else {
+    return redirect('/chat');
+  }
+};
+
+export default {
+  Component: Signup,
+  action,
+
+</passage><passage file_path=vsc-extension-quickstart.md>
+# Welcome to your VS Code Extension
+
+## What's in the folder
+
+* This folder contains all of the files necessary for your extension.
+* `package.json` - this is the manifest file in which you declare your extension and command.
+  * The sample plugin registers a command and defines its title and command name. With this information VS Code can show the command in the command palette. It doesn’t yet need to load the plugin.
+* `src/extension.ts` - this is the main file where you will provide the implementation of your command.
+  * The file exports one function, `activate`, which is called the very first time your extension is activated (in this case by executing the command). Inside the `activate` function we call `registerCommand`.
+  * We pass the function containing the implementation of the command as the second parameter to `registerCommand`.
+
+## Setup
+
+* install the recommended extensions (amodio.tsl-problem-matcher and dbaeumer.vscode-eslint)
+
+
+## Get up and running straight away
+
+
+</passage><passage file_path=CHANGELOG.md>
+- Added a 5 day event where all users will receive 5 free GPT-4 requests every 4 hours
+    - These free requests cannot be used for ask codebase
+- Rate limits are now displayed when hovering over account information
+- Fixed a bug that allowed users with no account to upgrade their plan
+- Improved codebase indexing reliability due to OpenAI rate limits
+
+## [0.9.1]
+
+- Added GPT-3.5-Turbo-16k model support. This is free but rate limited at the same token amount as normal GPT-3.5-Turbo.
+    - Subscribers to the gpt-3.5 pro plan will have unlimited access.
+    - This can be used for codebase related questions with the large context size
+    - We noticed this model may produce worse results than normal GPT-3.5, so we put a warning sign next to it.
+- File tree automatically updates when files are added or removed
+    - Folder removal is currently bugged
+- You can no longer index codebase when its currently being indexed
+- Added 2 additional code lens options
+    - Ask EasyCode
+    - Refactor
+
+## [0.9.0]
+
+
+</passage><passage file_path=package-lock.json>
+        "cohere-ai": "^5.0.2",
+        "d3-dsv": "^2.0.0",
+        "epub2": "^3.0.1",
+        "faiss-node": "^0.2.0",
+        "google-auth-library": "^8.8.0",
+        "hnswlib-node": "^1.4.2",
+        "html-to-text": "^9.0.5",
+        "ignore": "^5.2.0",
+        "mammoth": "*",
+        "mongodb": "^5.2.0",
+        "pdf-parse": "1.1.1",
+        "peggy": "^3.0.2",
+        "pickleparser": "^0.1.0",
+        "playwright": "^1.32.1",
+        "puppeteer": "^19.7.2",
+        "redis": "^4.6.4",
+        "replicate": "^0.9.0",
+        "srt-parser-2": "^1.2.2",
+        "typeorm": "^0.3.12",
+        "weaviate-ts-client": "^1.0.0"
+
+</passage><passage file_path=src/webview/pages/components/ForgotPassword.tsx>
+export default function ForgotPassword() {
+  const [email, setEmail] = useState('');
+
+  const data = useAppActionData<'forgotPassword'>()?.forgotPassword;
+  //console.log("data: ");
+  //console.log("data.data?.success: ", data?.data?.success);
+  return (
+    <Form replace method="POST">
+      <div className="flex flex-col gap-y-4 items-start px-6 w-64">
+        <Input
+          variant='bordered'
+          name="email"
+          type="email"
+          label="Email"
+          value={email}
+          onValueChange={(value: string) => { setEmail(value); }}
+        />
+
+        <Button type="submit" color="primary">Get Password Reset Link</Button>
+        {(data) && (
+          data.data?.success
+          ? <div className="text-success">Password Reset Email Sent.</div>
+          : <div className="text-danger">Failed to Send Password Reset Email.</div>
+        )}
+      </div>
+    </Form>
+  );
+
+</passage><passage file_path=src/helpers/prompt.ts>
+	/*
+	This used to be needed with the old code running UI, but is no longer necessary and offers
+	more flexibility in switching between languages without locking gpt into the same language
+	*/
+
+	/*
+	if (codeEvalLang in codeEvalExampleScript) {
+		messageHistory.push(
+			{
+				role: 'assistant',
+				// https://github.com/openai/openai-node/issues/195
+				// @ts-ignore
+				content: null,
+				function_call: {
+					name: codeEvalLang,
+					arguments: JSON.stringify({ script: codeEvalExampleScript[codeEvalLang] }),
+				},
+			}
+		);
+	}*/
+
+</passage><passage file_path=README.md>
+
+
+In summary, while ChatGPT can be a useful tool for software development work, it is important to be aware of its limitations and to use it in conjunction with human expertise and judgement. It is important to weigh the benefits and risks of using ChatGPT in each particular situation, and to exercise caution when relying on its responses.
+
+### In Summary
+</passage><passage file_path=src/webview/pages/components/AskCodebasePanel.tsx>
+    return (
+      <div className="">
+        {allDirectoryData?.map(directoryData =>
+        <div className="flex flex-row">
+          <FileTree node={directoryData.fileTree[0]}
+                    isRoot={true}
+                    onCheckboxChange={(node, selected) => handleCheckboxChange(node, directoryData.selectedFolderPath, directoryData.isProjectRoot, selected)}/>
+          {!directoryData.isProjectRoot &&
+            <IoTrashOutline className='w-6 h-6 mt-1 cursor-pointer hover:text-red-500' onClick={(event:any) => handleDeleteDirectory(event, directoryData.selectedFolderPath)} />
+          }
+        </div>
+        )}
+        <div style={{marginLeft: '0.125rem'}} className="flex flex-row cursor-pointer hover:text-blue-500" onClick={handleAddDirectory}>
+          <IoAddCircleOutline className='ml-5 w-6 h-6 mr-1.5 mb-2' /><span className="">Add Directory</span>
+        </div>
+
+</passage><passage file_path=src/webview/pages/components/UpgradeModal.tsx>
+export default function UpgradeModal({ isOpen, userProfile, onClose }: UpgradeModalProps) {
+  let dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  function handleLogout(navigate: NavigateFunction) {
+    store.dispatch(webviewToExtensionApi.endpoints.logout.initiate());
+    navigate('/auth/signup');
+  }
+
+
+</passage><passage file_path=src/webview/pages/components/AccountModal.tsx>
+        </ModalBody>
+        <ModalFooter>
+            <Button color="danger" variant="light" onClick={onClose}>
+                Close
+            </Button>
+          </ModalFooter>
+
+</passage><passage file_path=src/webview/pages/components/AccountModal.tsx>
+      </ModalContent>
+    </Modal>
+  );
+
+</passage><passage file_path=src/webview/pages/components/UpgradeModal.tsx>
+              {!(userProfile.subscribedCodebase) &&
+                <>
+                  <p>
+                    The Codebase Pro Plan ($20 / month) includes unlimited ask codebase with a higher limit of 1000 files. The gpt-3.5-pro plan is included
+                  </p>
+                  <Button radius='sm' color='primary' variant='shadow' onClick={(e) => dispatch(webviewToExtensionApi.endpoints.openUpgradeExternalLink.initiate({plan: "codebase-pro", user: userProfile}))}>
+                    <IoRocketOutline className="w-6 h-6" />Get Codebase Pro
+                  </Button>
+                </>
+              }
+
+</passage><passage file_path=src/webview/pages/components/AskCodebasePanel.tsx>
+    const handleDeleteDirectory = (event:any, selectedFolderPath: string) => {
+      store.dispatch(webviewToExtensionApi.endpoints.deleteDirectory.initiate({selectedFolderPath}));
+    }
+    const handleAddDirectory = (event: any) => {
+      store.dispatch(webviewToExtensionApi.endpoints.indexLocalDirectory.initiate());
+    }
+
+    const handleExcludeDirectories = (event: any) => {
+      store.dispatch(webviewToExtensionApi.endpoints.openPrimaryGitIgnoreFile.initiate());
+    }
+
+
+</passage><passage file_path=src/sentry/node-extension-telemetry.ts>
+export const createSentryRewriteFramesIntegration = (context: ExtensionContext) => new RewriteFrames({
+    iteratee(frame) {
+        const { filename, in_app, colno, lineno } = frame;
+        const inCurrentExt = filename ? vscode.Uri.file(filename).path.startsWith(context.extensionUri.path) : in_app;
+        const extColno = (colno !== undefined && lineno === 1) ? (colno - NODE_WRAPPER_PREFIX_LENGTH) : colno;
+
+        return {
+            ...frame,
+            in_app: inCurrentExt,
+            colno: inCurrentExt ? extColno : colno,
+        };
+    }
+});
+
+
+</passage><passage file_path=src/helpers/githubCodebaseIndex.ts>
+}): (progress: Progress<{ message?: string, increment?: number }>) => Promise<string> => {
+    return async (progress) => {
+        let commit: string | undefined | null = context.workspaceState.get<string>(getGhCommitCacheKey({ owner, name, ref }));
+
+        if (!commit) {
+            progress.report({ message: 'Fetching repository metadata' });
+
+            // the ref could be a fully specified ref, a branch, or a tag
+            const refsToTry = [ref, `heads/${ref}`, `tags/${ref}`];
+            while (!commit && refsToTry.length) {
+                commit = await fetchRefHash({ owner, name, fullRef: refsToTry.shift()! });
+            }
+
+            if (!commit) {
+                throw new Error(`Cannot find ${ref} in ${owner}/${name}`);
+            }
+
+            await context.workspaceState.update(getGhCommitCacheKey({ owner, name, ref }), commit);
+        }
+
+        if (await validateGhRepoCache( { context, commit })) {
+            // repo already cached
+            return commit;
+        }
+
+        progress.report({ message: 'Downloading repository' });
+        await cacheGhRepo({ context, owner, name, commit });
+
+</passage><passage file_path=src/webview/pages/components/ForgotPassword.tsx>
+import { Button, Input } from '@nextui-org/react';
+import { useState } from 'react';
+import { Form } from 'react-router-dom';
+import { useAppActionData } from '../../hooks';
+
+
+</passage><passage file_path=package-lock.json>
+        "google-auth-library": {
+          "optional": true
+        },
+        "hnswlib-node": {
+          "optional": true
+        },
+        "html-to-text": {
+          "optional": true
+        },
+        "ignore": {
+          "optional": true
+        },
+        "mammoth": {
+          "optional": true
+        },
+        "mongodb": {
+          "optional": true
+        },
+        "pdf-parse": {
+          "optional": true
+        },
+        "peggy": {
+          "optional": true
+        },
+        "pickleparser": {
+          "optional": true
+        },
+        "playwright": {
+          "optional": true
+        },
+        "puppeteer": {
+          "optional": true
+        },
+        "redis": {
+          "optional": true
+        },
+        "replicate": {
+          "optional": true
+        },
+        "srt-parser-2": {
+          "optional": true
+        },
+        "typeorm": {
+          "optional": true
+        },
+        "weaviate-ts-client": {
+          "optional": true
+        }
+
+</passage><passage file_path=src/webview/components/EditorContextMenuListener.tsx>
+  }, []);
+
+  return null; // This component does not render anything
+};
+
+
+</passage><passage file_path=src/webview/pages/components/FileTree.tsx>
+export const FileTree: React.FC<FileTreeProps> = ({ node, isRoot, onCheckboxChange }) => {
+
+  const handleCheckboxChange = (event: any, node: FileTreeNode) => {
+    const selected = event.target.checked;
+    onCheckboxChange(node, selected);
+  }
+
+  if (node.isFile) {
+    return (
+      <Checkbox value={node.path} key={node.path} isSelected={node.selected} onChange={(event) => handleCheckboxChange(event, node)}>
+        {node.name}
+      </Checkbox>
+    );
+  }
+
+  //Else, this is a folder
+
+</passage><passage file_path=src/webview/pages/components/ChatLayout.tsx>
+export default function ChatLayout() {
+  const {historyMenuButtonRef: historyMenuButtonRef, isHistoryMenuOpen: isHistoryMenuOpen, setHistoryMenuOpen: setHistoryMenuOpen } = useContext(ChatHistoryMenuItemContext);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { data } = useGetMessageHistoryListQuery(undefined, { skip: false});
+  //console.log(data);
+  const { tabId } = useParams<'tabId'>();
+  const navigate = useNavigate();
+  const selectRef = useRef<HTMLSelectElement>(null);
+  console.log(historyMenuButtonRef);
+
+  const onSelectionChangeHandler = useCallback((keys: Selection) => {
+    let selectedKey = Array.from(keys)[0];
+    console.log(`onSelectionChange from ${tabId} to ${selectedKey}`);
+    setHistoryMenuOpen(false);
+
+    if (selectedKey !== tabId) {
+      navigate(`${selectedKey}`);
+    }
+  }, [navigate, tabId]);
+
+  const scrollToRight = () => {
+    if (scrollContainerRef.current){
+      scrollContainerRef.current.scrollTo(scrollContainerRef.current.scrollWidth, 0);
+    }
+  };
+
+
+</passage><passage file_path=src/webview/redux/webviewToExtensionApi.ts>
+          window.addEventListener<'message'>('message', (evt: MessageEvent<ExtensionToWebviewMessage>) => {
+            const message = evt.data;
+            const { id, type } = message;
+            if (id !== msgId || type !== 'response-streaming') {
+              return;
+            }
+
+            //console.log("message:" + message);  // TODO: remove
+
+            const { data, error } = message;
+            if ('error' in message) {
+              // TODO: handle error
+              console.error(error);
+              return;
+            }
+
+            if (data === undefined || !('message' in data) || !('messageIndex' in data)) {
+              return;
+            }
+
+            const { message: chatMessage, messageIndex } = data as { message: EasyCodeChatMessage, messageIndex: number };
+            //console.log(`Updating ${messageIndex} to ${chatMessage.content}`);
+
+
+</passage><passage file_path=README.md>
+
+
+Overall, ChatGPT can be a valuable tool for software developers, but it is important to use it carefully and in conjunction with other sources of expertise and judgement. By understanding its limitations and capabilities, developers can use ChatGPT effectively to improve productivity and streamline workflows
+</passage><passage file_path=src/types/webviewToExtensionTypes.ts>
+  {
+    type: 'delete-directory',
+    data: {} as {
+      selectedFolderPath: string,
+    }
+  },
+  {
+    type: 'index-local-directory',
+  },
+  {
+    type: 'open-primary-gitignore-file',
+  },
+  {
+    type: 'addTab',
+  },
+  {
+    type: 'deleteTab',
+    data: {} as {
+      tabIdToDelete: string,
+    }
+  },
+  {
+    type: 'logout',
+  },
+  {
+    type: 'login-with-placeholder',
+  },
+  {
+    type: 'is-user-logged-in',
+  },
+  {
+    type: 'user-profile',
+  },
+  {
+    type: 'open-manage-subscription-external-link',
+    data: {} as {
+      user: EasyCodeUser,
+    }
+  },
+  {
+    type: 'open-upgrade-external-link',
+    data: {} as {
+      plan: string
+      user: EasyCodeUser,
+    }
+  },
+  {
+    type: 'message-history-list',
+  },
+  {
+    type: 'all-directories-file-tree',
+  },
+  {
+    type: 'messages',
+    data: {} as {
+      tabId?: string | null,
+    },
+  },
+  {
+    type: 'copy-code',
+    data: {} as {
+      code: string,
+    },
+  },
+  {
+    type: 'insert-code',
+    data: {} as {
+      code: string,
+    },
+  },
+
+</passage><passage file_path=src/apis/extensionToServerApi.ts>
+        if (closest_chunk_file_names.length == 0){
+          //TODO: handle error
+          /*
+          this._view?.webview.postMessage({ type: 'clearResponse', tabIndex: this._tabIndex });
+          this._view?.webview.postMessage({ type: 'addResponse', value: 'Your Codebase Is Not Indexed Yet.', tabIndex: this._tabIndex });
+          */
+          throw Error("Your Codebase Is Not Indexed Yet.");
+        }
+
+        console.log(closest_chunk_file_names);
+
+        //const codeEvalLang = await this.getSelectedCodeEvalLang();
+
+        let allCodeContext = '' as string;
+
+        let maxAvailableToken = calcMaxAvailableTokens();
+
+        let codebaseSummary = "";
+        let fileSummaries = "";
+        //Disabling this for now due to bug with additional directories added
+
+
+</passage><passage file_path=src/webview/components/EditorContextMenuListener.tsx>
+const EditorContextMenuListener = () => {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    //console.log("useEffect hook");
+
+</passage><passage file_path=src/webviewProvider/legacyWebviewViewProvider.ts>
+if (output !== null) {
+									this._messageHistory[this._tabIndex].push({
+										role: 'function',
+										name: data.codeEvalLang,
+										content: output,
+									});
+									await context.workspaceState.update('chatHistory', this._messageHistory);
+								}
+							})
+							const { evalHandleId, abort } = data.value;
+							const handle = this._codeEvalHandles[evalHandleId];
+							if (handle) {
+								const signal = abort ? AbortSignal.abort() : undefined;
+								handle.run({ signal });
+							}
+							*/
+							const workspace = vscode.workspace.workspaceFolders?.[0]?.uri;
+</passage><passage file_path=src/modules/generateCommitMessage.ts>
+            let generateCommitMessageSystemMessage: EasyCodeChatMessage = {
+                role: 'system',
+                content:
+`Git Commit Message Format:
+
+Capitalized, short (50 chars or less) summary
+
+More detailed explanatory text, if necessary.  Each line should wrap to about 72
+characters or so.  The first line is treated as the
+subject of an email and the rest of the text as the body.  The blank
+line separating the summary from the body is critical; tools like rebase can get confused if you run the
+two together.
+
+Write your commit message in the imperative form: "Fix bug" and not "Fixed bug"
+or "Fixes bug."  This convention matches up with commit messages generated
+by commands like git merge and git revert.
+
+You are a git commit message generator that will write a commit message following the format above.`,
+            };
+
+
+</passage><passage file_path=src/webview/pages/components/ChatLayout.tsx>
+        <ChatHistoryMenuItemConsumer>
+          {({ isHistoryMenuOpen: isHistoryMenuOpen }) => (
+          <Select
+            ref={selectRef}
+            isOpen={isHistoryMenuOpen}
+            label=""
+            radius="sm"
+            disallowEmptySelection={true}
+            defaultSelectedKeys={tabId ? new Set([tabId]) : undefined}
+            selectedKeys={tabId ? new Set([tabId]) : undefined}
+            onSelectionChange={onSelectionChangeHandler}
+            className="right-0 max-w-[80%] absolute opacity-0 pointer-events-none"
+            classNames={{
+              label: "group-data-[filled=true]:-translate-y-20",
+              trigger: "min-h-unit-16",
+              listboxWrapper: "max-w-[600px] max-h-[32rem] rounded-sm",
+            }}
+          >
+
+</passage><passage file_path=src/webview/redux/webviewToExtensionApi.ts>
+  endpoints: (builder) => ({
+    login: builder.mutation<{ user: EasyCodeUser }, { email?: string | null, password?: string | null }>({
+      query(data) {
+        return {
+          type: 'login',
+          data,
+        };
+      },
+      invalidatesTags: ['User', 'MessageHistoryList'],
+    }),
+    signup: builder.mutation<{ user: EasyCodeUser }, { email?: string | null, password?: string | null, role?: string | null }>({
+      query(data) {
+        return {
+          type: 'signup',
+          data,
+        };
+      },
+      invalidatesTags: ['User'],
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    loginWithPlaceholder: builder.mutation<{ user: EasyCodeUser }, void>({
+      query() {
+        return {
+          type: 'login-with-placeholder',
+        };
+      },
+      invalidatesTags: ['User'],
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+
+</passage><passage file_path=src/webview/pages/components/Layout.tsx>
+import { Outlet, ScrollRestoration } from 'react-router-dom';
+import { AppNav } from '../../components';
+import { useRef, useState } from 'react';
+import { ChatHistoryMenuItemProvider } from '../../components/ChatHistoryMenuItemContext';
+import React from 'react';
+
+export default function Layout() {
+
+  const [isMenuOpen, setMenuOpen] = useState(false);
+  const historyMenuButtonRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <>
+      <ChatHistoryMenuItemProvider value={{ isHistoryMenuOpen: isMenuOpen, setHistoryMenuOpen: setMenuOpen, historyMenuButtonRef: historyMenuButtonRef}}>
+      <AppNav />
+      <main className="flex-grow">
+        <Outlet />
+      </main>
+      </ChatHistoryMenuItemProvider>
+      <ScrollRestoration />
+    </>
+  );
+
+</passage><passage file_path=README.md>
+**`GPT: Index Codebase` →** Allows for re-indexing of codebase, or indexing a different part of the codebase.
+
+## Contact
+- DM us on <a href="https://www.twitter.com/EasyCodeAI" target=”_blank”><b>Twitter</b></a>.
+- Join our <a href="https://discord.gg/VgE3tQuKrg" target=”_blank”><b>Discord</b></a> server.
+- Email **[support@easycode.ai](mailto:support@easycode.ai)** with your feedback & questions!
+
+<div align="center">
+  <br />
+Made with ❤️ + ☕ from 🇨🇦
+  <br />
+ © 2023 EasyCode AI.
+</div>
+
+
+# Additional Information About ChatGPT
+
+### What is ChatGPT?
+
+According to OpenAI,
+
+> ChatGPT is a sibling model to [InstructGPT](https://openai.com/blog/instruction-following/), which is trained to follow an instruction in a prompt and provide a detailed response. ChatGPT was initially launched to get users’ feedback and learn about its strengths and weaknesses. During the research preview, usage of ChatGPT is free. A paid version of ChatGPT has since been launched with has more features.
+>
+
+According to ChatGPT itself,
+</passage><passage file_path=src/webview/pages/components/AskCodebasePanel.tsx>
+        <div style={{marginLeft: '0.125rem'}} className="flex flex-row cursor-pointer hover:text-blue-500" onClick={handleExcludeDirectories}>
+          <IoRemoveCircleOutline className='ml-5 w-6 h-6 mr-1.5 mb-2' />
+          <span className="">Exclude Directories</span>
+        </div>
+
+
+</passage><passage file_path=src/webview/components/EditorContextMenuListener.tsx>
+    const messageHandler = (event: { data: any; }) => {
+      const message = event.data; // The JSON data our extension sent
+      switch (message.type) {
+        case 'contextMenuOptionSelected':
+          console.log(message.data);
+          if (message.data.option == 'ask'){
+          // Dispatch an action to extensionApi
+          //console.log(message);
+          //console.log("dispatching setInputText Action");
+            dispatch(webviewToExtensionApi.endpoints.addTab.initiate()).then(result => {
+              if ('data' in result){
+                let newTabId = result?.data.newTabId;
+                dispatch(inputText.actions.setInputText({text: message.data.selectedText + '\n\n' + message.data.input, tabId: newTabId}));
+              }
+            })
+          } else if (message.data.option == 'index-codebase'){
+            dispatch(webviewToExtensionApi.endpoints.indexCodebase.initiate())
+          } else if (message.data.option == 'refresh-file-tree'){
+            dispatch(webviewToExtensionApi.util.invalidateTags(['FileTree']));
+          }
+          break;
+      }
+
+</passage><passage file_path=src/webview/pages/data/signup.ts>
+import { json, redirect } from 'react-router-dom';
+import { webviewToExtensionApi } from '../../redux/webviewToExtensionApi';
+import { store } from '../../redux/store';
+import Signup from '../components/Signup';
+import type { JsonType } from '../../routes/types';
+import type { ActionFunction } from '@remix-run/router';
+
+
+</passage><passage file_path=src/webview/pages/components/ErrorModal.tsx>
+export default function ErrorModal({ isOpen, errorMessage, onClose }: ErrorModalProps) {
+
+  return (
+    <Modal radius="sm" size={"lg"} placement={"center"} isOpen={isOpen} onClose={onClose}>
+      <ModalContent>
+        <ModalHeader className="flex flex-col gap-1">Error</ModalHeader>
+        <ModalBody>
+            <>
+              <p>
+                {errorMessage}
+              </p>
+            </>
+        </ModalBody>
+        <ModalFooter>
+            <Button color="danger" variant="light" onClick={onClose}>
+                Close
+            </Button>
+          </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+
+</passage><passage file_path=src/apis/openaiClient.ts>
+        async *submitChatMessage( { model, messages }) {
+
+            abortAllActiveStreams = false;
+
+            let resolve: any;
+            let reject: any;
+            let promise = new Promise<string>((r, j) => { resolve = r; reject = j; });
+
+            let responseStream: any;
+            let firstDataReceived = false;
+
+            //wrapOnDataReceivedWithTracing(this._completion[this._tabIndex]);
+            //console.log(completion);
+            const functionCall: Required<NonNullable<ChatCompletionResponseMessage['function_call']>> = { name: '', arguments: '' };
+            let parsedArguments: any = undefined;
+            const incompleteQueue: string[] = [];
+
+
+</passage><passage file_path=src/webview/pages/components/FileTree.tsx>
+    <Accordion isCompact fullWidth={false} className="-ml-6 my-0 px-0 py-0">
+        <AccordionItem classNames={{indicator: "order-first -rotate-180 mr-0 pr-0"}} className="ml-0 my-0 px-0 py-0" startContent={<Checkbox className="pl-1 my-0 py-0" key={node.path} value={node.path} isSelected={node.selected} onChange={(event) => handleCheckboxChange(event, node)}>{node.name}</Checkbox>}>
+            <div className="ml-12 my-0 py-0 flex flex-col">
+            {node.children?.map(childNode => (
+                <FileTree key={childNode.path} node={childNode} isRoot={false} onCheckboxChange={onCheckboxChange}/>
+            ))}
+            </div>
+        </AccordionItem>
+
+</passage><passage file_path=src/webview/pages/components/FileTree.tsx>
+  return (
+    isRoot ?
+
+    <Accordion defaultExpandedKeys={['root']} isCompact fullWidth={false} className="ml-0 my-0 px-0 py-0">
+        <AccordionItem key="root" classNames={{indicator: "order-first -rotate-180 mr-0 pr-0"}} className="ml-0 my-0 px-0 py-0" startContent={<Checkbox className="pl-1 my-0 py-0" key={node.path} value={node.path} isSelected={node.selected} onChange={(event) => handleCheckboxChange(event, node)}>{node.name}</Checkbox>}>
+            <div className="ml-12 my-0 py-0 flex flex-col">
+            {node.children?.map(childNode => (
+                <FileTree key={childNode.path} node={childNode} isRoot={false} onCheckboxChange={onCheckboxChange}/>
+            ))}
+            </div>
+        </AccordionItem>
+    </Accordion>
+    :
+
+
+</passage><passage file_path=src/webview/pages/components/ErrorModal.tsx>
+import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter} from '@nextui-org/react';
+import { useAppDispatch } from '../../hooks';
+import { webviewToExtensionApi } from '../../redux/webviewToExtensionApi';
+import { EasyCodeUser } from '../../../apis/extensionToServerApi';
+import { IoCardOutline, IoRocketOutline } from 'react-icons/io5';
+
+interface ErrorModalProps {
+  isOpen: boolean;
+  errorMessage: string;
+  onClose: () => void;
+}
+
+
+</passage><passage file_path=src/webview/pages/data/layout.ts>
+  return json<JsonType<'isLoggedIn'>>({ isLoggedIn: { data: { isLoggedIn: false } } });
+};
+
+const shouldRevalidate: ShouldRevalidateFunction = () => true;
+
+export default {
+  Component: Layout,
+  loader,
+  shouldRevalidate,
+  id: 'layout' as const,
+
+</passage><passage file_path=src/modules/indexCodebase.ts>
+    return files.filter(file => {
+        const filePath = file.path;
+        let ignoreFile = false;
+
+        for (const [ignoreDir, gitignore] of parsedGitIgnores) {
+            if (!filePath.startsWith(ignoreDir)) {
+                continue;
+            }
+
+            const relativePath = path.posix.relative(ignoreDir, filePath);
+            const dirname = `${path.posix.dirname(relativePath)}/`;
+            // if the parent directory is ignored, stop processing
+            // descendents cannot be unignored
+            if (dirname !== './' && gitignore.ignores(dirname)) {
+                ignoreFile = true;
+                break;
+            }
+
+            const { ignored, unignored } = gitignore.test(relativePath);
+            ignoreFile = !unignored && (ignoreFile || ignored);
+        }
+
+        return !ignoreFile;
+    });
+
+</passage><passage file_path=src/apis/extensionToServerApi.ts>
+				if (data.text === 'NOGPT4TOKENSLEFT') {
+          reject('You have no more GPT-4 credits left. Please upgrade your plan or switch to GPT-3 in the settings.')
+          return;
+				}
+
+</passage><passage file_path=src/extension.ts>
+	legacyWebviewViewProvider.setAuthenticationInfo({
+		apiKey: config.get('openAI ApiKey')
+	});
+
+	legacyWebviewViewProvider.setupEasyCodeAPI();
+
+	// Update the editor history whenever the active editor changes
+    let disposable = vscode.window.onDidChangeActiveTextEditor((editor) => {
+		legacyWebviewViewProvider.updateEditorHistory(editor);
+	});
+
+	// Update the editor history with the initial active editor
+	legacyWebviewViewProvider.updateEditorHistory(vscode.window.activeTextEditor);
+
+	context.subscriptions.push(disposable);
+
+	let newWebviewViewProvider: ExtendedWebviewViewProvider;
+	// Register the provider with the extension's context
+
+	const easyCodeClient = createEasyCodeClient(context, easycode_url);
+	let openAIClient : OpenAIClient = createOpenAIClient(Settings.getSettings().openAIApiKey);
+
+	newWebviewViewProvider = createWebviewViewProvider(context, easyCodeClient, openAIClient);
+
+</passage><passage file_path=walkthroughs/learn-more.md>
+### **EasyCode: Copy On Click**
+
+When this is checked, all the code inside a code block returned by EasyCode will be automatically copied to clipboard. 
+
+If you want finer control in terms of what to copy, leave this unchecked. When it’s unchecked, you can manually copy the section you want by selecting the code, and copying it. 
+
+### **EasyCode: Max Tokens**
+
+To have a larger context, set this lower! This is the maximum token for generating output. So the larger it is, the smaller your input (prompt) context will be. 
+
+### **EasyCode > Prompt Prefix**
+
+These are the prompts that are sent when you choose the ask GPT the various questions. You can customize these prompts to get your desired outcome.
+
+## Need help?
+
+- Post your question in [Discord](https://discord.com/invite/VgE3tQuKrg) (fastest) or
+- Email **support@easycode.ai** or
+- Submit a [support ticket](https://tally.so/r/n9X2YY)
+
+</passage><passage file_path=src/modules/diffViewProvider.ts>
+export function createDiffView(document: vscode.TextDocument, selection:vscode.Selection, newCode:string){
+			let uri = document.uri;
+			// Read the content of uri
+			let content1 = document.getText();
+
+			// Get the language of the document
+			let language = path.extname(uri.fsPath).substring(1);
+
+			// Create a virtual document with the same content as uri and the same language
+			let virtualDocUri = vscode.Uri.parse('easycode-temp:' + path.join(uri.fsPath,'virtualDoc'));
+
+			class VirtualFileContentProvider {
+				provideTextDocumentContent(uri: vscode.Uri) {
+					// Extract the selected text from content1
+					let start = document.offsetAt(selection.start);
+					let end = document.offsetAt(selection.end);
+					let before = content1.substring(0, start);
+					let selected = content1.substring(start, end);
+					let after = content1.substring(end);
+					// Replace the content in the selection with the new content
+					let newContent = before + newCode + after;
+					return newContent;
+				}
+			}
+
+			let virtualFileContentProvider = new VirtualFileContentProvider();
+
+</passage><passage file_path=src/modules/indexCodebase.ts>
+export async function findFiles (root: vscode.WorkspaceFolder | vscode.Uri, pattern: string, ignore?: string[]) {
+    const rootUri: vscode.Uri = 'uri' in root ? root.uri : root;
+    const useVscodeApi = rootUri.scheme !== 'file' && rootUri.scheme !== 'vscode-userdata';
+
+    const tokenSource = new vscode.CancellationTokenSource();
+    const timeoutMs = 15_000;
+    tokenSource.token.onCancellationRequested(() => {
+        console.warn(`findFiles timeout ${timeoutMs} ms exceeded`);
+    });
+    setTimeout(() => tokenSource.cancel(), timeoutMs);
+
+    let paths: vscode.Uri[];
+
+</passage><passage file_path=src/apis/openaiClient.ts>
+                        /*
+                        ((parsedArguments === undefined || !isMessageComplete) ? (
+                            Promise.resolve()
+                        ) : (
+                            this.configCodeEvalHandle(parsedArguments, codeEvalLang).then<void>(async (output) => {
+                                if (output !== null) {
+                                    this._messageHistory[this._tabIndex].push({
+                                        role: 'function',
+                                        name: functionCall.name,
+                                        content: output,
+                                    });
+                                    await context.workspaceState.update('chatHistory', this._messageHistory);
+                                }
+                            })
+                        )).then(() => {
+                            if (this._sortedMap && this._sortedMap.length > 0){
+                                this._view?.webview.postMessage({ type: 'addFollowUpBox', tabIndex: this._tabIndex, codebaseAnswer: true});
+                            } else {
+                                this._view?.webview.postMessage({ type: 'addFollowUpBox', tabIndex: this._tabIndex});
+                            }
+                        }).finally(() => {
+                            console.log(this._messageHistory[this._tabIndex]);
+
+</passage><passage file_path=src/types/types.ts>
+export interface CodeEvalHandle {
+	run: ({ signal }?: { signal?: AbortSignal }) => void,
+}
+
+export interface ExtendedWebviewViewProvider extends vscode.WebviewViewProvider {
+	postMessage: (message: any) => void;
+  clearCache: () => void;
+  createLocalOpenAIClient: (apiKey: string | undefined) => void;
+}
+
+export type AuthInfo = {apiKey?: string}
+
+</passage><passage file_path=src/webview/redux/webviewToExtensionApi.ts>
+    forgotPassword: builder.mutation<{ success: boolean }, { email?: string | null }>({
+      query(data) {
+        return {
+          type: 'forgot-password',
+          data,
+        };
+      },
+      //TODO: figure this out later: invalidatesTags: ['User'],
+    }),
+    logout: builder.mutation<void, void>({
+      query() {
+        return {
+          type: 'logout',
+        };
+      },
+      invalidatesTags: ['User'],
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    isLoggedIn: builder.query<{ isLoggedIn: boolean }, void>({
+      query() {
+        return {
+          type: 'is-user-logged-in',
+        };
+      },
+      providesTags: ['User'],
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+
+</passage><passage file_path=package-lock.json>
+    "node_modules/num-sort": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/num-sort/-/num-sort-2.1.0.tgz",
+      "integrity": "sha512-1MQz1Ed8z2yckoBeSfkQHHO9K1yDRxxtotKSJ9yvcTUUxSvfvzEq5GwBrjjHEpMlq/k5gvXdmJ1SbYxWtpNoVg==",
+      "engines": {
+        "node": ">=8"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/sindresorhus"
+      }
+    },
+    "node_modules/oauth-sign": {
+      "version": "0.9.0",
+      "resolved": "https://registry.npmjs.org/oauth-sign/-/oauth-sign-0.9.0.tgz",
+      "integrity": "sha512-fexhUFFPTGV8ybAtSIGbV6gOkSv8UtRbDBnAyLQw4QPKkgNlsH2ByPGtMUqdWkos6YCRmAqViwgZrJc/mRDzZQ==",
+      "engines": {
+        "node": "*"
+      }
+    },
+
+</passage><passage file_path=src/apis/openaiClient.ts>
+                        /*
+                        if (delta.function_call) {
+                            if (response === '') {
+                                this._view?.webview.postMessage({ type: 'showStopGeneratingButton' });
+                            }
+                            const { name: funcName, arguments: funcArguments } = delta.function_call;
+                            if (funcName?.length) {
+                                functionCall.name += funcName;
+                                if (!codeEvalLang.startsWith(functionCall.name)) {
+                                    // AI is using the wrong tool, abort request
+                                    this._stopStreaming[this._tabIndex] = true;
+                                    throw new Error(`Wrong tool! ${functionCall.name}`);
+                                }
+                            }
+                            if (funcArguments?.length) {
+                                functionCall.arguments += funcArguments;
+                            }
+
+                            this._view?.webview.postMessage({
+                                type: 'addResponse',
+                                value: `\`\`\`json\n${functionCall.arguments ?? ''}\n\`\`\``,
+                                tabIndex: this._tabIndex,
+                                role: 'assistant',
+                            });
+                        }
+
+                        const finishReason = parsed.choices[0].finish_reason;
+                        if (finishReason === 'function_call') {
+                            parsedArguments = this.parseFunctionCallArguments(functionCall, codeEvalLang);
+                        }
+
+</passage><passage file_path=src/extension.ts>
+			}
+        }
+    };
+
+	async function triggerInlineCompletion() {
+		//console.log("triggeredInline");
+		// Execute the 'editor.action.inlineSuggest.show' command
+		await vscode.commands.executeCommand('editor.action.inlineSuggest.trigger');
+	}
+
+	let inLineDisposable = vscode.languages.registerInlineCompletionItemProvider({ pattern: '**' }, inLineProvider);
+
+	context.subscriptions.push(inLineDisposable);
+
+	let triggerInLineDisposable = vscode.commands.registerCommand('easycode.inlineCompletion', triggerInlineCompletion);
+	context.subscriptions.push(triggerInLineDisposable);
+
+
+</passage><passage file_path=src/helpers/tokenCounters.ts>
+/**
+ * Only accurate for OpenAI models
+ * based on https://github.com/openai/openai-cookbook/blob/4fd2b1a6d29d76dcdb3ae65ac12b1a71253d65b6/examples/How_to_count_tokens_with_tiktoken.ipynb
+ */
+export function countMessageTokens(message: ChatCompletionRequestMessage) {
+    // message prefix 3 tokens, suffix 3 tokens
+    let sum = 3 + 3;
+    sum += enc.encode(message.role).length;
+    if (message.name) {
+        sum += enc.encode(message.name).length;
+        // name consumes 1 additional token
+        sum += 1;
+    }
+    if (message.content) {
+        sum += enc.encode(message.content).length;
+    }
+    if (message.function_call?.name) {
+        sum += enc.encode(message.function_call.name).length;
+        sum += 1;
+    }
+    if (message.function_call?.arguments) {
+        sum += enc.encode(message.function_call.arguments).length;
+        sum += 1;
+    }
+
+    return sum;
+}
+
+
+</passage><passage file_path=src/extension.ts>
+	const inLineProvider = {
+
+</passage><passage file_path=src/modules/indexCodebase.ts>
+    }, async (progress) => {
+        let totalProgress = 0;
+
+        const files = await findIndexableFiles(indexRoot);
+        if (!files?.length) {
+            return;
+        }
+
+        let rootPath = indexRoot.path;
+        if (rootPath.charAt(0) !== '/') {
+            rootPath = `/${rootPath}`;
+        }
+        if (!rootPath.endsWith('/')) {
+            rootPath = `${rootPath}/`;
+        }
+
+        let file_read_streams:ReadStream[] = []
+        let file_paths:string[] = []
+        files.forEach(file => {
+            file_read_streams.push(fs.createReadStream(file.fsPath));
+            file_paths.push(file.path.substring(rootPath.length));
+        });
+
+        rootIdentifier ??= rootPath;
+        if (rootIdentifier.charAt(0) === '/') {
+            rootIdentifier = rootIdentifier.substring(1);
+        }
+
+
+</passage><passage file_path=package.json>
+{
+  "name": "chatgpt-gpt4-gpt3-vscode",
+  "displayName": "ChatGPT - EasyCode",
+  "description": "ChatGPT with codebase understanding, web browsing, & GPT-4. No account or API key required.",
+  "version": "1.1.8",
+  "publisher": "EasyCodeAI",
+  "icon": "resources/old_extensionIcon.png",
+  "license": "MIT",
+  "repository": {
+    "url": "https://easycode.ai/"
+  },
+  "engines": {
+    "vscode": "^1.68.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "chatgpt",
+    "openai",
+    "gpt3",
+    "gpt4",
+    "copilot",
+    "ai",
+    "explain",
+    "debugging",
+    "code explanation",
+    "code generation",
+    "code summary",
+    "unit testing"
+  ],
+
+</passage><passage file_path=package.json>
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "welcome",
+        "title": "Getting Started with EasyCode",
+        "description": "Discover EasyCode features that users love.",
+
+</passage><passage file_path=walkthroughs/learn-more.md>
+## Additional Features
+
+<img src="https://storage.googleapis.com/easycode-assets/easycode-context.png" alt="Context Menu">
+
+**Ask GPT (context menu)**
+
+Select some code in the editor, right click, and choose “Ask GPT”. It’s used to ask a question or give a command that’s specific to the code you selected. 
+
+**Ask GPT: What does this do?**
+
+Explains in detail what the code is doing. Useful for code that’s hard to read for various reasons (unfamiliar language, next level regex, yaml/config files, etc).
+
+**Ask GPT: Refactor Code** 
+
+Refactor the selected code block.
+
+**Ask GPT: Write Unit Tests** 
+
+Write unit tests for the selected code block
+
+**Ask GPT: Write Code**
+
+Get code suggestion that are specific to the code you selected. For example:
+- “Modify a function so that it does ____”
+- “Write a test case that tests _____”
+- “Write documentation for this function”
+
+## Settings
+
+EasyCode settings can be accessed by clicking the “Settings” button above the question box. 
+
+
+</passage><passage file_path=src/modules/codeLensProvider.ts>
+import vscode from "vscode";
+import type { CodeLens, CodeLensProvider, DocumentSymbol, SymbolInformation, ProviderResult, Uri } from "vscode";
+
+const isCodeLensEnabled = () => (
+    vscode.workspace.getConfiguration('easycode').get<boolean>('codeLens', true)
+);
+
+const findSymbols = async (uri: Uri): Promise<DocumentSymbol[] | null> => {
+    const symbols =
+        await vscode.commands.executeCommand<ProviderResult<SymbolInformation[] | DocumentSymbol[]>>('vscode.executeDocumentSymbolProvider', uri);
+    if (!Array.isArray(symbols) || !('range' in symbols[0])) {
+        return null;
+    }
+
+    return symbols as DocumentSymbol[];
+};
+
+
+</passage><passage file_path=package.json>
+        "steps": [
+          {
+            "id": "askCodebase",
+            "title": "Ask Codebase Related Question",
+            "description": "EasyCode answers questions using your own codebase as context.",
+            "media": {
+              "markdown": "walkthroughs/askCodebase.md"
+            }
+          },
+          {
+            "id": "refineContext",
+            "title": "Refine Codebase Context (Experimental)",
+            "description": "Control what EasyCode uses as context.",
+            "media": {
+              "markdown": "walkthroughs/refineContext.md"
+            }
+          },
+          {
+            "id": "askGPT",
+            "title": "Ask ChatGPT a Question",
+            "description": "Ask ChatGPT any question, with follow ups and chat history.",
+            "media": {
+              "markdown": "walkthroughs/askGPT.md"
+            }
+          },
+
+</passage><passage file_path=walkthroughs/askGPT.md>
+## ChatGPT in the IDE
+
+<img src="https://storage.googleapis.com/easycode-assets/askGPT.gif" alt="ChatGPT in the IDE">
+
+
+</passage><passage file_path=tsconfig.json>
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"esModuleInterop": true,
+		"target": "ES2020",
+		"lib": [
+			"ES2020"
+		],
+		"isolatedModules": true,
+		"jsx": "react-jsx",
+		"sourceMap": true,
+		"rootDir": "src",
+		"strict": true   /* enable all strict type-checking options */
+		/* Additional Checks */
+		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
+		// "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
+		// "noUnusedParameters": true,  /* Report errors on unused parameters. */
+	},
+	"include": ["src/**/*"],
+	"exclude": ["src/webview/**/*"]
+
+</passage><passage file_path=src/sentry/react-webview-telemetry.ts>
+        // Set tracesSampleRate to 0.01 to capture 1%
+        // of transactions for performance monitoring.
+        tracesSampleRate: 0.01,
+
+        // Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
+        tracePropagationTargets: [
+          easycode_url,
+          // inline completion endpoint
+          '209.20.159.29',
+        ],
+
+        // Capture Replay for 0.1% of all sessions,
+        // plus for 100% of sessions with an error
+        replaysSessionSampleRate: 0.001,
+        replaysOnErrorSampleRate: 1.0,
+
+</passage><passage file_path=src/helpers/chatHistory.ts>
+import { TextDecoder } from "node:util";
+import { EasyCodeChatMessage } from "../types/types";
+import { countMessageTokens, decodeToString, encodeString } from "./tokenCounters";
+
+
+export function messageNumberToIndex(chatHistory: EasyCodeChatMessage[], messageNumber: number) {
+    const tabMsgHistory = chatHistory;
+    let counter = 0;
+    const idx = tabMsgHistory.findIndex(({ role }) => {
+        if (role === 'user') {
+            counter++;
+        }
+        return counter === (messageNumber + 1);
+    });
+    return (idx < 0 ? tabMsgHistory.length : idx) - 1;
+}
+
+// create a copy of message history with history up to message number
+export function sliceMessageHistory(chatHistory: EasyCodeChatMessage[], messageNumber: number) {
+    const tabMsgHistory = chatHistory;
+    return tabMsgHistory.slice(0, messageNumberToIndex(chatHistory, messageNumber) + 1);
+}
+
+</passage><passage file_path=src/modules/generateCommitMessage.ts>
+    if (workspaceFolders){
+
+        // Get the current workspace
+        const workspace = workspaceFolders[0];
+
+        // Get the Git repository
+        const repo = git.getRepository(workspace.uri);
+
+        const changes = repo.repository.indexGroup.resourceStates;
+
+        // Get the diff of all the changes
+
+        let allFileDiffs = "";
+
+        if (!changes || changes.length == 0){
+            await vscode.window.showErrorMessage('Please stage some changes first.');
+            return;
+        }
+        for (const change of changes) {
+            const resourceUri = change.resourceUri;
+            const diff = await repo.diffIndexWithHEAD(resourceUri.fsPath);
+            allFileDiffs += diff;
+        }
+
+        let streamingCommitMessageResponse = '';
+
+</passage><passage file_path=src/helpers/fileNodeUtils.ts>
+export function processFilesToNestedStructure(files: vscode.Uri[], nodeSelectedMap: Map<string, boolean>) {
+    let root = createFileNode('', false);
+
+    for (const file of files) {
+        let current = root;
+        const filePathComponents = file.path.split('/');
+
+        for (const [index, component] of filePathComponents.entries()) {
+        let childNode = current.children.find((child: any) => child.name === component);
+
+        if (!childNode) {
+            let selected = false;
+            if (nodeSelectedMap.has(`${current.path}/${component}`)) {
+                selected = true;
+            }
+            childNode = createFileNode(component, selected, current.path);
+            current.children.push(childNode);
+        }
+
+        if (index === filePathComponents.length - 1) {
+            childNode.isFile = true;
+        }
+
+        current = childNode;
+        }
+    }
+
+    return root.children;
+}
+
+
+</passage><passage file_path=src/webview/pages/components/HoverToolTip.tsx>
+import { Tooltip } from "@nextui-org/react";
+import { ReactNode } from "react";
+
+interface HoverTooltipProps {
+    children: ReactNode;
+    content: string;
+    [x: string]: any; // for other props
+}
+
+export const HoverTooltip = ({ children, content, ...props }: HoverTooltipProps) => {
+  const globalCloseDelay = 100; // Set your global close delay here
+
+  return (
+    <Tooltip radius="sm" content={content} placement="bottom-end" closeDelay={globalCloseDelay} {...props}>
+      {children}
+    </Tooltip>
+  );
+
+</passage><passage file_path=src/sentry/node-extension-telemetry.ts>
+import module from 'node:module';
+import runtimeProcess from 'node:process';
+
+import * as vscode from 'vscode';
+import * as SentryNode from '@sentry/node';
+import { ExtraErrorData, RewriteFrames } from '@sentry/integrations';
+
+import { easycode_url } from '../keys';
+
+import type { ExtensionContext } from 'vscode';
+import type { TelemetrySender } from 'vscode-1-75';
+
+// extension code is wrapped in a function wrapper
+// calculate the wrapper prefix to subtract from stacktrace colum number
+const NODE_WRAPPER_PREFIX_LENGTH = module.wrap('__EASYCODE__').indexOf('__EASYCODE__');
+
+
+</passage><passage file_path=src/webview/redux/uiActions.ts>
+// src/webview/redux/uiActions.ts
+
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+interface InputTextState {
+    text: string;
+    tabId: string | null;
+    isLoading: boolean;
+    error: any;
+}
+
+interface InputTextPayload {
+    text: string;
+    tabId: string;
+}
+
+const initialInputTextState: InputTextState = {
+    text: '',
+    tabId: null,
+    isLoading: false,
+    error: null,
+};
+
+const inputTextSlice = createSlice({
+    name: 'inputText',
+    initialState: initialInputTextState,
+    reducers: {
+      setInputText: (state, action: PayloadAction<InputTextPayload>) => {
+        state.text = action.payload.text;
+        state.tabId = action.payload.tabId;
+      },
+      // other reducers...
+    },
+});
+
+const askCodebaseCheckboxSlice = createSlice({
+  name: 'askCodebaseCheckbox',
+  initialState: false,
+  reducers: {
+    setAskCodebaseCheckbox: (state, action: PayloadAction<boolean>) => {
+      state = action.payload;
+    },
+    // other reducers...
+  },
+});
+
+
+</passage><passage file_path=src/sentry/node-extension-telemetry.ts>
+export const initializeExtensionSentry = () => {
+    SentryNode.init({
+        enabled: !!process.env.SENTRY_ENABLED,
+        release: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+        environment: process.env.NODE_ENV,
+        dsn: "https://6eca0b151027458aae43c25d5ea2c29c@o4505094109331456.ingest.sentry.io/4505094113787904",
+        // Set tracesSampleRate to 1.0 to capture 100%
+        // of transactions for performance monitoring.
+        // We recommend adjusting this value in production
+        tracesSampleRate: 0.01,
+        tracePropagationTargets: [
+            easycode_url,
+            // inline completion endpoint
+            '209.20.159.29',
+        ],
+
+        sendDefaultPii: true,
+
+        initialScope: scope => (
+            scope
+                .setUser(createSentryUser())
+                .setTags(createSentryTags())
+                .setContext('Environment Variables', runtimeProcess.env)
+        ),
+
+        // enable integrations manually to avoid problematic integrations
+        defaultIntegrations: false,
+
+</passage><passage file_path=src/webview/tsconfig.json>
+{
+	"compilerOptions": {
+		"module": "ESNext",
+		"esModuleInterop": true,
+		"target": "ESNext",
+		"lib": [
+			"ESNext",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"jsx": "react-jsx",
+		"moduleResolution": "bundler",
+		"isolatedModules": true,
+		"sourceMap": true,
+		"rootDir": "..",
+		"noEmit": true,
+		"strict": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"noFallthroughCasesInSwitch": true,
+	},
+
+</passage><passage file_path=walkthroughs/askCodebase.md>
+## Ask Codebase a Question
+
+<img src="https://storage.googleapis.com/easycode-assets/askCodebase.gif" alt="Ask Codebase Related Questions">
+
+EasyCode knows about your codebase and uses relevant context to provide answers that are tailored to your project's code and dependencies. Useful for code suggestions, codebase understanding, and code search in a large repo.
+</passage><passage file_path=src/webview/pages/data/chatTab.ts>
+const action: ActionFunction = async ({ request }) => {
+  const { tabId, messageIndex, content, isAskCodebase, isAskWeb, model } = Object.fromEntries<FormDataEntryValue>(await request.formData());
+  if (!!(tabId && typeof tabId !== 'string') || !!(messageIndex && typeof messageIndex !== 'string') || !!(content && typeof content !== 'string') || !!(isAskCodebase && typeof isAskCodebase !== 'string') || !!(isAskWeb && typeof isAskWeb !== 'string')) {
+    // should not happen
+    throw new Error('Unexpected type');
+  }
+
+  let response = await store.dispatch(webviewToExtensionApi.endpoints.sendMessage.initiate({ tabId: tabId, messageIndex: parseInt(messageIndex), content: content, isAskCodebase: isAskCodebase === 'true', isAskWeb: isAskWeb === 'true', model: typeof model === 'string' ? model : null}));
+  if ('error' in response) {
+    store.dispatch(errorModal.actions.showError(response.error.message || 'No Error Message'));
+  }
+  store.dispatch(webviewToExtensionApi.endpoints.getMessageHistoryList.initiate(undefined, {forceRefetch: true}));
+  return null;
+
+</passage><passage file_path=src/types/webviewToExtensionTypes.ts>
+const WEBVIEW_TO_EXTENSION_MESSAGES = [
+  {
+    type: 'abort',
+    data: {} as {
+      reason?: AbortSignal['reason'],
+    },
+  },
+  {
+    type: 'go-to-code',
+    data: {} as {
+      text: string,
+      isFileName: boolean,
+      tabId: string,
+      messageIndex: number,
+    }
+  },
+  {
+    type: 'login',
+    data: {} as {
+      email?: string | null,
+      password?: string | null,
+    },
+  },
+  {
+    type: 'signup',
+    data: {} as {
+      email?: string | null,
+      password?: string | null,
+      role?: string | null,
+    },
+  },
+  {
+    type: 'forgot-password',
+    data: {} as {
+      email?: string | null,
+    }
+  },
+  {
+    type: 'get-model'
+  },
+  {
+    type: 'set-model',
+    data: {} as {
+      model: string,
+    }
+  },
+  {
+    type: 'select-or-unselect-node',
+    data: {} as {
+      fileNode: FileTreeNode,
+      selected: boolean,
+      selectedFolderPath: string,
+      isProjectRoot: boolean,
+    }
+  },
+  {
+    type: 'check-codebase-indexed',
+  },
+  {
+    type: 'index-codebase',
+  },
+
+</passage><passage file_path=src/webview/routes/types.ts>
+import type { ExtensionToWebviewMessage } from '../../types/webviewToExtensionTypes';
+import type { ExtensionApiEndpoint, webviewToExtensionApi } from '../redux/webviewToExtensionApi';
+import type { SerializedError } from '@reduxjs/toolkit';
+
+export interface DataOrError<T extends ExtensionApiEndpoint> {
+  data?: Partial<(typeof webviewToExtensionApi.endpoints)[T]['Types']['ResultType']>;
+  error?: ExtensionToWebviewMessage['error'] | SerializedError;
+}
+
+export type JsonType<T extends ExtensionApiEndpoint> = {
+  [endpoint in T]?: DataOrError<T>;
+
+</passage><passage file_path=walkthroughs/refineContext.md>
+## Refine Context (Experimental)
+
+<img src="https://storage.googleapis.com/easycode-assets/refineContext.png" alt="Refine Context">
+
+Ask EasyCode to *only consider the files you want* and excludes the rest that don't apply to your current question. This is especially helpful when you are using a smaller context model such as gpt-3.5-turbo.
+</passage><passage file_path=src/modules/codeLensProvider.ts>
+        const findLenses = (symbols: DocumentSymbol[]) => {
+            symbols.forEach(({ kind, range, children }) => {
+                if ([vscode.SymbolKind.Constructor, vscode.SymbolKind.Method, vscode.SymbolKind.Function].includes(kind)) {
+                    const symbolCodeLenses = [
+                        ['Ask EasyCode', 'easycode.ask'],
+                        ['Explain', 'easycode.explain'],
+                        ['Refactor', 'easycode.refactorCode'],
+                    ]
+                        .map(([title, command]) => new vscode.CodeLens(
+                            range,
+                            {
+                                title,
+                                command,
+                                arguments: [uri, range],
+                            },
+                        ));
+
+                    lenses.push(...symbolCodeLenses);
+                }
+
+                children?.length && findLenses(children);
+            });
+        };
+        findLenses(symbols);
+
+        return lenses;
+
+</passage><passage file_path=src/webview/routes/routes.tsx>
+import { createRoutesFromElements, redirect, Route } from 'react-router-dom';
+import { chatLayout, chatTab, forgotPassword, layout, login, signup, tryWithoutAccount } from '../pages';
+
+// TODO: error boundary
+const routes = createRoutesFromElements(
+  <Route path="/" {...layout}>
+    <Route index loader={() => redirect('chat')} />
+
+    <Route path="/auth">
+      <Route index loader={() => redirect('login')} />
+      <Route path="signup" {...signup} />
+      <Route path="login" {...login} />
+      <Route path="forgot-password" {...forgotPassword} />
+      <Route path="try" {...tryWithoutAccount} />
+    </Route>
+
+    <Route path="/chat">
+      <Route {...chatLayout}>
+        <Route index loader={() => redirect('new')} />
+        <Route path="new" element={<div></div>} />
+        <Route path=":tabId" {...chatTab} />
+      </Route>
+    </Route>
+  </Route>,
+);
+
+
+</passage><passage file_path=src/helpers/githubCodebaseIndex.ts>
+const fetchRefHash = async ({ owner, name, fullRef }: { owner: string, name: string, fullRef: string }) => {
+    const encodedOwner = encodeURIComponent(owner);
+    const encodedName = encodeURIComponent(name);
+    const encodedFullRef = encodeURIComponent(fullRef);
+
+    const res = await fetch(new URL(`/repos/${encodedOwner}/${encodedName}/git/ref/${encodedFullRef}`, GITHUB_API), {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+    });
+
+    if (!res.ok) {
+        return null;
+    }
+
+    return (await res.json() as any).object.sha as string;
+};
+
+
+</passage><passage file_path=src/modules/codeLensProvider.ts>
+export const createCodeLensProvider = (): CodeLensProvider => ({
+    async provideCodeLenses({ uri }, _token) {
+        if (!isCodeLensEnabled()) {
+            return null;
+        }
+
+        const symbols = await findSymbols(uri);
+        if (!symbols?.length) {
+            return null;
+        }
+
+        const lenses: CodeLens[] = [];
+
+</passage><passage file_path=src/webview/pages/index.ts>
+export { default as login } from './data/login';
+export { default as tryWithoutAccount } from './data/tryWithoutAccount';
+export { default as layout } from './data/layout';
+export { default as chatLayout } from './data/chatLayout';
+export { default as signup } from './data/signup';
+export { default as forgotPassword } from './data/forgotPassword';
+
+</passage><passage file_path=src/webview/pages/data/forgotPassword.ts>
+import { json } from 'react-router-dom';
+import { webviewToExtensionApi } from '../../redux/webviewToExtensionApi';
+import { store } from '../../redux/store';
+import type { JsonType } from '../../routes/types';
+import ForgotPassword from '../components/ForgotPassword';
+import type { ActionFunction } from '@remix-run/router';
+
+const action: ActionFunction = async ({ request }) => {
+  const { email } = Object.fromEntries<FormDataEntryValue>(await request.formData());
+
+  if (!!(email && typeof email !== 'string')) {
+    // should not happen
+    throw new Error('Unexpected type');
+  }
+
+  const result = await store.dispatch(webviewToExtensionApi.endpoints.forgotPassword.initiate({ email }));
+  console.log(result);
+  if ('error' in result) {
+    return json<JsonType<'forgotPassword'>>({ forgotPassword: result });
+  } else {
+    return json<JsonType<'forgotPassword'>>({ forgotPassword: result });
+  }
+};
+
+export default {
+  Component: ForgotPassword,
+  action,
+
+</passage><passage file_path=src/helpers/prompt.ts>
+const createPrompt = (question: string, model: string, selection?: string) => {
+
+	let messageHistory = [];
+	if (model === 'gpt-4' || model === 'gpt-4-32k'){
+		let systemMessageObject = { role: "system", content: 'You are an AI coding assistant.'} as ChatCompletionRequestMessage;
+		messageHistory.push(systemMessageObject);
+	} else {
+		let systemMessageObject = { role: "system", content: 'You are an AI coding assistant.'} as ChatCompletionRequestMessage;
+		messageHistory.push(systemMessageObject);
+	}
+
+	let userMessageObject: ChatCompletionRequestMessage = { role: "user" };
+	//let prompt = ''
+	if (selection) {
+		// If there is a selection, add the prompt and the selected text to the search prompt
+		if (Settings.getSettings().selectedInsideCodeblock) {
+			userMessageObject.content = selection + '\n\n' + question;
+		} else {
+			userMessageObject.content = selection + '\n\n' + question;
+		}
+	} else {
+		// Otherwise, just use the prompt if user typed it
+		userMessageObject.content = question;
+	}
+	messageHistory.push(userMessageObject);
+	return messageHistory;
+
+</passage><passage file_path=src/webviewProvider/Webview.tsx>
+    return (
+        <html lang="en">
+        <head>
+            <meta charSet="UTF-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <script type="module" src={webview.asWebviewUri(webpackRuntime).toString()} />
+            <script type="module" src={webview.asWebviewUri(jsVendor).toString()} />
+            <script type="module" src={webview.asWebviewUri(jsEntry).toString()} />
+            <link rel="stylesheet" href={webview.asWebviewUri(stylesheet).toString()} />
+            <title />
+        </head>
+        <body>
+        <div id="root" data-icon-uri={iconUri.toString()} />
+        </body>
+        </html>
+    );
+
+</passage><passage file_path=src/types/types.ts>
+import * as vscode from 'vscode';
+import { ChatCompletionRequestMessage } from 'openai';
+import { SelectedCodebaseContent } from '../apis/extensionToServerApi';
+
+export interface EasyCodeChatMessage extends ChatCompletionRequestMessage {
+  easyCodeMetadata?: {
+    model?: string,
+    modelType?: string,
+    feedback?: 'positive' | 'negative',
+    isMessageComplete?: boolean,
+    useOwnApiKey?: boolean,
+    isAskCodebase?: boolean,
+    isAskWeb?: boolean,
+    useActiveViewContext?: boolean,
+    promptRevised?: boolean,
+    selectedCodebaseContent?: SelectedCodebaseContent
+  };
+}
+
+export interface FileTreeNode {
+	name: string;
+	path: string;
+	children: FileTreeNode[];
+	selected: boolean;
+	isFile?: boolean;
+}
+
+export interface DirectoryData {
+  fileTree: FileTreeNode[];
+  isProjectRoot:boolean;
+  selectedFolderPath:string;
+  rootLabel:string|undefined;
+}
+
+
+export interface ReferenceMapping {
+	ReferenceMethodFileMapping: Map<vscode.Uri, vscode.DocumentSymbol>;
+	methodName: string;
+	methodText: string;
+}
+
+
+</passage><passage file_path=src/helpers/utils.ts>
+export const tabTitleFromMessages = (messages: ChatCompletionRequestMessage[], defaultTitle: string = '', maxLength = 15) => {
+	let tabTitle = defaultTitle;
+
+	const firstUserMessage = messages.find(({ role }) => role === 'user');
+	if (firstUserMessage?.content?.length){
+		if (firstUserMessage.content.includes("Based on the code and files above, ")){
+			tabTitle = firstUserMessage.content.split("Based on the code and files above, ")[firstUserMessage.content.split("Based on the code and files above, ").length-1].substring(0, maxLength);
+		} else if (firstUserMessage.content.includes("Based on the text above, ")) {
+			tabTitle = firstUserMessage.content.split("Based on the text above, ")[firstUserMessage.content.split("Based on the text above, ").length-1].substring(0, maxLength);
+		} else if (firstUserMessage.content.includes("\n")){
+			tabTitle = firstUserMessage.content.split("\n")[firstUserMessage.content.split("\n").length-1].substring(0, maxLength);
+		} else {
+			tabTitle = firstUserMessage.content.substring(0, maxLength);
+		}
+	}
+
+	return tabTitle;
+
+</passage><passage file_path=src/helpers/chatHistory.ts>
+    for (i = truncatedHistory.length; i < messageHistory.length; i++) {
+        const msg = messageHistory[i];
+        if (truncatedHistoryLength <= targetLength) {
+            // target length reached, push all remaining messages onto truncated history
+
+            let sliceStart = i;
+            if (!firstUserMsgAdded) {
+                sliceStart = messageHistory.findIndex(({ role }, idx) => (
+                    idx >= i && role === 'user'
+                ));
+                if (sliceStart !== i) {
+                    truncatedHistoryLength -= messageHistory
+                        .slice(i, sliceStart)
+                        .reduce((agg, curr) => agg + countMessageTokens(curr), 0);
+                }
+            }
+
+            const remaining = messageHistory.slice(sliceStart);
+            truncatedHistory.push(...remaining);
+            break;
+        }
+
+        // skip system messages
+        if (msg.role === 'system') {
+            continue;
+        }
+
+        const msgLength = countMessageTokens(msg);
+
+</passage><passage file_path=src/helpers/fileNodeUtils.ts>
+export function countSelectedFiles(fileNode: any): number {
+    let count = 0;
+
+    if (fileNode.children && fileNode.children.length > 0) {
+        for (const child of fileNode.children) {
+            count += countSelectedFiles(child);
+        }
+    } else {
+        count = 1;
+    }
+
+    return count;
+}
+
+// Helper function to collect all file nodes
+export function collectFileNodes(fileNodes: any[]): any[] {
+    let collectedNodes: any[] = [];
+
+    for (const fileNode of fileNodes) {
+        // If the fileNode has children, call collectFileNodes recursively
+        if (fileNode.children && fileNode.children.length > 0) {
+            collectedNodes.push(...collectFileNodes(fileNode.children));
+        } else {
+            collectedNodes.push(fileNode);
+        }
+    }
+
+    return collectedNodes;
+
+</passage><passage file_path=src/webviewProvider/Webview.tsx>
+}
+
+export const renderWebview = (params: WebviewProps) => {
+    // use static markup because vscode modifies the html
+    return renderToStaticMarkup(<Webview {...params} />);
+
+</passage><passage file_path=src/types/webviewToExtensionTypes.ts>
+  {
+    type: 'diff-code',
+    data: {} as {
+      code: string,
+    },
+  },
+  {
+    type: 'abort-all-streams'
+  },
+  {
+    type: 'send-message',
+    data: {} as {
+      tabId?: string | null,
+      messageIndex?: number | null,
+      content?: string | null,
+      isAskCodebase?: boolean | null,
+      isAskWeb?: boolean | null,
+      model?: string | null,
+    },
+  },
+
+</passage><passage file_path=src/helpers/chatHistory.ts>
+            truncatedHistory.push({
+                ...msg,
+                content: newContent,
+                easyCodeMetadata: {
+                    ...(msg.easyCodeMetadata ?? {}),
+                    isMessageComplete: false,
+                },
+            });
+            firstUserMsgAdded = true;
+
+</passage><passage file_path=src/helpers/githubCodebaseIndex.ts>
+export const createCacheGhRepoTask = ({
+    context,
+    owner,
+    name,
+    ref,
+}: {
+    context: ExtensionContext,
+    owner: string,
+    name: string,
+    ref: string,
+
+</passage><passage file_path=src/webview/helpers/LazyHighlighter.tsx>
+import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import hljs from 'highlight.js';
+
+function LazyHighlighter({ language, value }: {language:any, value:any }) {
+  //const ref = useRef<HTMLDivElement>(null);
+
+  if (!language){
+    const result = hljs.highlightAuto(value);
+    language = result.language;
+  }
+
+  return (
+    <div>
+      {(
+        <SyntaxHighlighter language={language} style={atomOneDark}>
+          {value}
+        </SyntaxHighlighter>
+      )}
+    </div>
+  );
+}
+
+
+</passage><passage file_path=src/helpers/utils.ts>
+};
+
+export const messagesWithoutIndexedChunks = (messages: EasyCodeChatMessage[]) => {
+
+	const firstUserMessage = messages.find(({ role }) => role === 'user');
+	if (firstUserMessage?.content?.length){
+		if (firstUserMessage.content.includes("Based on the code and files above, ")){
+			firstUserMessage.content = firstUserMessage.content.split("Based on the code and files above, ")[firstUserMessage.content.split("Based on the code and files above, ").length-1];
+		} else if (firstUserMessage.content.includes("Based on the text above, ")) {
+			firstUserMessage.content = firstUserMessage.content.split("Based on the text above, ")[firstUserMessage.content.split("Based on the text above, ").length-1];
+		}
+	}
+
+	return messages;
+};
+
+export function convertToChatCompletionRequestMessage(messages: EasyCodeChatMessage[]): ChatCompletionRequestMessage[] {
+	return messages.map(message => {
+		const { easyCodeMetadata, ...rest } = message;
+		return rest;
+	});
+
+</passage><passage file_path=src/modules/generateCommitMessage.ts>
+            let generateCommitMessageUserMessage: EasyCodeChatMessage = {
+                role: 'user',
+                content: allFileDiffs + '\n\nBased on the above file diffs, write a commit message.',
+            };
+
+            let messages = [generateCommitMessageSystemMessage, generateCommitMessageUserMessage];
+            let model = Settings.getSettings().model;
+			try {
+				for await (const data of easyCodeClient.submitChatMessage({ model: model ? model : "gpt-4", messages: messages})) {
+					//console.log(data);
+					streamingCommitMessageResponse += data;
+                    // Set the commit message
+                    if (repo.inputBox) {
+                        repo.inputBox.value = streamingCommitMessageResponse;
+                    }
+				}
+			} catch (error:any) {
+				if (error != 'STOPSIGNAL' && error != 'User Stopped Streaming'){
+					console.log(error);
+				}
+				if (error == 'STOPSIGNAL'){
+					//messageComplete = true;
+				}
+			}
+
+</passage><passage file_path=src/sentry/easycodeSentryGlobal.ts>
+const KEY = '__SENTRY__' as const;
+const sentryStore: { [KEY]: any } = { [KEY]: undefined };
+
+const resolveTarget = <T>(p: string | symbol, target: T) => {
+    return p === KEY ? sentryStore : target;
+};
+
+// Create a proxy for globalThis for Sentry
+// to isolate the global __SENTRY__ variable
+
+</passage><passage file_path=src/webview/index.tsx>
+root.render(
+  <StrictMode>
+    <SentryReact.ErrorBoundary fallback={<p>An error has occurred</p>}>
+      <ReduxProvider store={store}>
+        <NextUIProvider>
+          <div className="flex flex-col h-screen w-screen text-foreground bg-background overflow-x-hidden">
+            <EditorContextMenuListener />
+            <RouterProvider router={router} future={{ v7_startTransition: true }} fallbackElement={<Spinner label="Loading" className="m-auto" />} />
+          </div>
+        </NextUIProvider>
+      </ReduxProvider>
+    </SentryReact.ErrorBoundary>
+  </StrictMode>,
+
+</passage><passage file_path=src/webview/components/CommandLink.tsx>
+export default function CommandLink({ command, args, showAnchorIcon = false, children }: CommandLinkProps) {
+  const anchorRef = useRef<HTMLAnchorElement>(null);
+  const serializedArgs = useMemo(() => (
+    args !== undefined ? encodeURIComponent(JSON.stringify(args)) : undefined
+  ), [args]);
+  const uri = useMemo(() => {
+    let commandUri = `command:${command}`;
+    if (serializedArgs !== undefined) {
+      commandUri += `?${serializedArgs}`;
+    }
+    return commandUri;
+  }, [command, serializedArgs]);
+  const onPressHandler = useCallback(() => {
+    anchorRef.current?.click();
+  }, []);
+
+  return (
+    <>
+      <span className="w-full text-lg text-white hover:text-blue-500 cursor-pointer" onClick={onPressHandler}>{children}</span>
+      {/* create another anchor tag to hold the uri, directly using Link's href doesn't work */}
+      {createPortal(<a ref={anchorRef} className="hidden" href={uri} />, document.body)}
+    </>
+  );
+
+</passage><passage file_path=src/helpers/tokenCounters.ts>
+/**
+ * Estimate input token usage for each function definition
+ * The estimation will be off by a few tokens from the actual usage.
+ * There is no official documentation on how function definitions should be counted,
+ * see https://github.com/openai/openai-cookbook/issues/500
+ */
+
+export function countFunctionDefinitionTokens(functions: ReadonlyArray<ChatCompletionFunctions>) {
+    return functions.reduce((agg, curr) => agg + enc.encode(JSON.stringify(curr)).length, 0);
+}
+
+export function countMessageHistoryTokens(messageHistory: ChatCompletionRequestMessage[], functions: ReadonlyArray<ChatCompletionFunctions>) {
+    const msgTokenCount = messageHistory.reduce((agg, curr) => agg + countMessageTokens(curr), 0);
+    const funcTokenCount = countFunctionDefinitionTokens(functions);
+
+    return msgTokenCount + funcTokenCount;
+
+</passage><passage file_path=src/webview/redux/error.ts>
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+const errorState = {
+  error: false,
+  message: ''
+};
+
+const errorModalSlice = createSlice({
+  name: 'errorModal',
+  initialState: errorState,
+  reducers: {
+    showError: (state, action: PayloadAction<string>) => {
+      state.error = true;
+      state.message = action.payload;
+      return state;
+    },
+    clearError: (state) => {
+      state.error = false;
+      state.message = '';
+      return state;
+    },
+    // other reducers...
+  },
+});
+
+// Export as an object
+export const errorModal = {
+  reducer: errorModalSlice.reducer,
+  actions: errorModalSlice.actions,
+
+</passage><passage file_path=src/helpers/prompt.ts>
+};
+
+
+
+</passage><passage file_path=src/sentry/react-webview-telemetry.ts>
+      });
+
+</passage><passage file_path=src/webview/redux/uiActions.ts>
+const askWebCheckboxSlice = createSlice({
+  name: 'askWebCheckbox',
+  initialState: false,
+  reducers: {
+    setAskCodebaseCheckbox: (state, action: PayloadAction<boolean>) => {
+      state = action.payload;
+    },
+    // other reducers...
+  },
+});
+
+// Export as an object
+export const inputText = {
+  reducer: inputTextSlice.reducer,
+  actions: inputTextSlice.actions,
+};
+
+// Export as an object
+export const askCodebaseChecked = {
+  reducer: askCodebaseCheckboxSlice.reducer,
+  actions: askCodebaseCheckboxSlice.actions,
+};
+
+// Export as an object
+export const askWebChecked = {
+  reducer: askWebCheckboxSlice.reducer,
+  actions: askWebCheckboxSlice.actions,
+
+</passage><passage file_path=src/helpers/fileNodeUtils.ts>
+import * as vscode from 'vscode';
+import type { FileTreeNode } from '../types/types';
+
+
+export function createFileNode(filePath: string, selected: boolean, parentPath: string = ''): FileTreeNode {
+		return {
+			name: filePath,
+			path: parentPath ? `${parentPath}/${filePath}` : filePath,
+			children: [],
+			selected: selected,
+		};
+	}
+
+export function addAllFilesToNodeSelectedMap(allFiles: vscode.Uri[], nodeSelectedMap: Map<string, boolean>) {
+
+    for (const file of allFiles){
+        let filePath = file.path;
+        if (file.path.at(0) == '/')
+            filePath = filePath.substring(1);
+        nodeSelectedMap.set(filePath, true);
+    }
+    return nodeSelectedMap;
+}
+
+
+</passage><passage file_path=src/webview/pages/data/chatTab.ts>
+};
+
+export default {
+  Component: ChatTab,
+  loader,
+  action,
+
+</passage><passage file_path=src/sentry/easycodeSentryGlobal.ts>
+    ownKeys(target) {
+        return [...Reflect.ownKeys(target), ...Reflect.ownKeys(sentryStore)];
+    },
+});
+
+
+</passage><passage file_path=src/sentry/react-webview-telemetry.ts>
+export const initializeReactWebviewSentry = () => {
+    SentryReact.init({
+        enabled: !!process.env.SENTRY_ENABLED,
+        release: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+        environment: process.env.NODE_ENV,
+        dsn: "https://d95c2e12efc5488cabcbc5c4ddbfa207@o4505094109331456.ingest.sentry.io/4505094523387904",
+
+        sendDefaultPii: true,
+
+        integrations: [
+          new SentryReact.BrowserTracing({
+            // See docs for support of different versions of variation of react router
+            // https://docs.sentry.io/platforms/javascript/guides/react/configuration/integrations/react-router/
+            routingInstrumentation: SentryReact.reactRouterV6Instrumentation(
+              React.useEffect,
+              useLocation,
+              useNavigationType,
+              createRoutesFromChildren,
+              matchRoutes
+            ),
+          }),
+          new SentryReact.Replay({
+            maskAllText: false,
+            maskAllInputs: false,
+            blockAllMedia: false,
+          }),
+        ],
+
+
+</passage><passage file_path=src/modules/diffViewProvider.ts>
+			vscode.workspace.registerTextDocumentContentProvider('easycode-temp', virtualFileContentProvider);
+
+			// Open the diff view
+			vscode.commands.executeCommand('vscode.diff', virtualDocUri, uri, 'EasyCode Diff View');
+
+</passage><passage file_path=src/webview/components/ChatHistoryMenuItemContext.tsx>
+import React, { Dispatch, RefObject, SetStateAction } from 'react';
+
+const ChatHistoryMenuItemContext = React.createContext({
+    isHistoryMenuOpen: false,
+    setHistoryMenuOpen: (() => {}) as Dispatch<SetStateAction<boolean>>,
+    historyMenuButtonRef: React.createRef<HTMLDivElement>(),
+  });
+
+export const ChatHistoryMenuItemProvider = ChatHistoryMenuItemContext.Provider;
+export const ChatHistoryMenuItemConsumer = ChatHistoryMenuItemContext.Consumer;
+
+
+</passage><passage file_path=src/helpers/dataCollection.ts>
+  stringifiedMessageHistoryChunks.forEach((chunk:string, index:number) => {
+      if (index == 0){
+          logObject.chatString1 = chunk;
+      } else if (index == 1){
+          logObject.chatString2 = chunk;
+      } else if (index == 2){
+          logObject.chatString3 = chunk;
+      } else if (index == 3){
+          logObject.chatString4 = chunk;
+      } else if (index == 4){
+          logObject.chatString5 = chunk;
+      } else if (index == 5){
+          logObject.chatString6 = chunk;
+      } else if (index == 6){
+          logObject.chatString7 = chunk;
+      } else if (index == 7){
+          logObject.chatString8 = chunk;
+      }
+    });
+
+    return logObject;
+
+</passage>
